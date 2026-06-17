@@ -6,19 +6,17 @@ import { coverImageOrFallback } from "@/lib/images";
 
 type BlogCardProps = {
   blog: PublicBlog;
-  featured?: boolean;
 };
 
-export function BlogCard({ blog, featured = false }: BlogCardProps) {
+export function BlogCard({ blog }: BlogCardProps) {
   return (
-    <article className={featured ? "blog-card blog-card-featured" : "blog-card"}>
+    <article className="blog-card">
       <Link href={`/blogs/${blog.slug}`} className="blog-card-img" aria-label={blog.title}>
         <Image
           src={coverImageOrFallback(blog.coverImage)}
           alt={blog.title}
           fill
-          sizes={featured ? "(max-width: 900px) 100vw, 48vw" : "(max-width: 900px) 100vw, 33vw"}
-          priority={featured}
+          sizes="(max-width: 900px) 100vw, 33vw"
         />
       </Link>
       <div className="blog-card-body">

@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useRef, useState } from "react";
+import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 
 function loginErrorMessage(status: number) {
@@ -21,6 +22,7 @@ export function AdminLoginForm() {
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (loading) return;
     const form = new FormData(event.currentTarget);
     const password = String(form.get("password") || "");
 
@@ -33,10 +35,14 @@ export function AdminLoginForm() {
     setLoading(true);
     setError("");
 
+    let redirecting = false;
+
     try {
       const response = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        cache: "no-store",
+        credentials: "same-origin",
         body: JSON.stringify({
           password
         })
@@ -51,24 +57,28 @@ export function AdminLoginForm() {
       }
 
       setError("");
-      router.push(searchParams.get("next") || "/admin");
+      redirecting = true;
+      const next = searchParams.get("next");
+      router.replace(next?.startsWith("/admin") ? next : "/admin");
       router.refresh();
     } catch {
       setError("Unable to connect to the server. Please try again.");
       passwordRef.current?.focus();
     } finally {
-      setLoading(false);
+      if (!redirecting) setLoading(false);
     }
   }
 
   return (
     <form className="admin-login-card" onSubmit={submit}>
-      <div className="admin-login-mark">IP</div>
+      <div className="admin-login-logo">
+        <Image src="/images/logo.png" alt="Impex-Pro" width={72} height={72} priority />
+      </div>
       <div className="section-tag">Secure Admin</div>
-      <h1>Blog CMS Login</h1>
-      <p>Manage published articles, drafts, SEO metadata, and blog performance content.</p>
+      <h1>Welcome Back</h1>
+      <p>Access your Impex-Pro Admin Dashboard to manage inquiries, blogs, activities, team profiles, reviews, and business content.</p>
       <div className="form-group">
-        <label htmlFor="admin-password">Password</label>
+        <label htmlFor="admin-password">Admin Password</label>
         <input
           ref={passwordRef}
           id="admin-password"
@@ -88,8 +98,9 @@ export function AdminLoginForm() {
         </div>
       ) : null}
       <button type="submit" className="form-submit" disabled={loading}>
-        {loading ? "Signing in..." : "Sign In"}
+        {loading ? <><span className="login-spinner" aria-hidden="true" />Signing you in...</> : "Sign In to Dashboard"}
       </button>
+      <small className="admin-login-foot">Secure admin access for Impex-Pro management.</small>
     </form>
   );
 }

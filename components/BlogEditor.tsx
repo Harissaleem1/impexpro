@@ -2,8 +2,9 @@
 
 import { FormEvent, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import type { Blog, BlogStatus } from "@/lib/blog-shared";
+import type { Blog } from "@/lib/blog-shared";
 import { parseTags, slugify } from "@/lib/blog-shared";
+import { MediaUploadField } from "@/components/MediaUploadField";
 
 type BlogEditorProps = {
   blog?: Blog;
@@ -16,13 +17,11 @@ export function BlogEditor({ blog }: BlogEditorProps) {
   const [title, setTitle] = useState(blog?.title || "");
   const [slug, setSlug] = useState(blog?.slug || "");
   const [manualSlug, setManualSlug] = useState(Boolean(blog?.slug));
-  const [status, setStatus] = useState<BlogStatus>(blog?.status || "draft");
   const [errors, setErrors] = useState<Errors>({});
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
 
   const previewSlug = useMemo(() => slug || slugify(title), [slug, title]);
-  const previewHref = blog ? `/admin/blogs/preview/${blog.id}` : "";
 
   function updateTitle(value: string) {
     setTitle(value);
@@ -31,13 +30,16 @@ export function BlogEditor({ blog }: BlogEditorProps) {
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    const targetForm = event.currentTarget;
+    if (targetForm.querySelector('[data-uploading="true"]')) {
+      setErrors({ form: "Please wait for media uploads to finish before saving." });
+      return;
+    }
     setLoading(true);
     setErrors({});
     setMessage("");
 
-    const form = new FormData(event.currentTarget);
-    const publishStatus = form.get("publishStatus") === "published" ? "published" : "draft";
-    setStatus(publishStatus);
+    const form = new FormData(targetForm);
     const payload = {
       title,
       slug: previewSlug,
@@ -47,7 +49,7 @@ export function BlogEditor({ blog }: BlogEditorProps) {
       category: form.get("category"),
       tags: parseTags(String(form.get("tags") || "")),
       author: form.get("author"),
-      status: publishStatus,
+      status: "published",
       metaTitle: form.get("metaTitle"),
       metaDescription: form.get("metaDescription"),
       canonicalUrl: form.get("canonicalUrl")
@@ -67,7 +69,7 @@ export function BlogEditor({ blog }: BlogEditorProps) {
       return;
     }
 
-    setMessage(publishStatus === "published" ? "Blog published successfully." : "Draft saved successfully.");
+    setMessage("Blog saved successfully.");
     router.push("/admin/blogs");
     router.refresh();
   }
@@ -108,16 +110,12 @@ export function BlogEditor({ blog }: BlogEditorProps) {
         </div>
         <aside className="admin-panel">
           <div className="form-group">
-            <label htmlFor="status">Status</label>
-            <select id="status" value={status} onChange={(e) => setStatus(e.target.value as BlogStatus)}>
-              <option value="draft">Draft</option>
-              <option value="published">Published</option>
-              <option value="archived">Archived</option>
-            </select>
-          </div>
-          <div className="form-group">
-            <label htmlFor="coverImage">Cover Image URL</label>
-            <input id="coverImage" name="coverImage" defaultValue={blog?.coverImage || ""} placeholder="https://..." />
+            <MediaUploadField
+              name="coverImage"
+              label="Cover Image"
+              defaultValue={blog?.coverImage || ""}
+              folder="blogs"
+            />
             {errors.coverImage ? <span className="field-error">{errors.coverImage}</span> : null}
           </div>
           <div className="form-group">
@@ -149,21 +147,9 @@ export function BlogEditor({ blog }: BlogEditorProps) {
             <input id="canonicalUrl" name="canonicalUrl" defaultValue={blog?.canonicalUrl || ""} placeholder="https://..." />
           </div>
           <div className="admin-editor-actions">
-            <button type="submit" name="publishStatus" value="draft" className="btn btn-outline-gold" disabled={loading}>
-              {loading && status === "draft" ? "Saving..." : "Save Draft"}
+            <button type="submit" className="form-submit" disabled={loading}>
+              {loading ? "Saving..." : blog ? "Update Blog" : "Save Blog"}
             </button>
-            <button type="submit" name="publishStatus" value="published" className="form-submit" disabled={loading}>
-              {loading && status === "published"
-                ? "Publishing..."
-                : blog?.status === "published"
-                  ? "Update Published Blog"
-                  : "Publish Blog"}
-            </button>
-            {previewHref ? (
-              <a className="btn btn-navy" href={previewHref} target="_blank" rel="noreferrer">
-                Preview
-              </a>
-            ) : null}
           </div>
         </aside>
       </div>

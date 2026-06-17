@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
+import { useAdminDragReorder } from "@/components/useAdminDragReorder";
 import type { Blog } from "@/lib/blog-shared";
 import { formatDate } from "@/lib/blog-shared";
 
@@ -10,70 +11,62 @@ type AdminBlogsTableProps = {
   blogs: Blog[];
 };
 
+function blogDateValue(blog: Blog) {
+  return new Date(blog.publishedAt || blog.createdAt || blog.updatedAt).getTime() || 0;
+}
+
+function sortBlogs(blogs: Blog[]) {
+  return [...blogs].sort((a, b) => {
+    const aOrder = Number.isFinite(a.sortOrder) ? Number(a.sortOrder) : Number.MAX_SAFE_INTEGER;
+    const bOrder = Number.isFinite(b.sortOrder) ? Number(b.sortOrder) : Number.MAX_SAFE_INTEGER;
+
+    if (aOrder !== bOrder) return aOrder - bOrder;
+    return blogDateValue(b) - blogDateValue(a);
+  });
+}
+
 export function AdminBlogsTable({ blogs }: AdminBlogsTableProps) {
   const router = useRouter();
+  const [items, setItems] = useState(() => sortBlogs(blogs));
   const [query, setQuery] = useState("");
-  const [status, setStatus] = useState("");
   const [deleting, setDeleting] = useState("");
-  const [updating, setUpdating] = useState("");
+  const [orderError, setOrderError] = useState("");
+  const reorder = useAdminDragReorder({ items, setItems, endpoint: "/api/admin/blogs/reorder", errorMessage: "Unable to save blog order.", setError: setOrderError });
 
   const filtered = useMemo(() => {
-    return blogs.filter((blog) => {
+    return items.filter((blog) => {
       const q = query.toLowerCase();
       const matchesQuery =
         !q ||
         [blog.title, blog.excerpt, blog.category, blog.author, blog.slug].join(" ").toLowerCase().includes(q);
-      return matchesQuery && (!status || blog.status === status);
+      return matchesQuery;
     });
-  }, [blogs, query, status]);
+  }, [items, query]);
 
   async function remove(id: string) {
     if (!window.confirm("Delete this blog permanently?")) return;
     setDeleting(id);
     const response = await fetch(`/api/admin/blogs/${id}`, { method: "DELETE" });
     setDeleting("");
-    if (response.ok) router.refresh();
-  }
-
-  async function updateStatus(blog: Blog, nextStatus: "draft" | "published" | "archived") {
-    setUpdating(blog.id);
-    const response = await fetch(`/api/admin/blogs/${blog.id}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        ...blog,
-        status: nextStatus
-      })
-    });
-    setUpdating("");
-
-    if (!response.ok) {
-      const data = await response.json().catch(() => ({}));
-      window.alert(data.errors ? Object.values(data.errors).join("\n") : data.error || "Unable to update blog.");
-      return;
+    if (response.ok) {
+      setItems((current) => current.filter((blog) => blog.id !== id));
+      router.refresh();
     }
-
-    router.refresh();
   }
 
   return (
     <div className="admin-panel">
       <div className="admin-toolbar">
         <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search blogs..." />
-        <select value={status} onChange={(e) => setStatus(e.target.value)}>
-          <option value="">All statuses</option>
-          <option value="published">Published</option>
-          <option value="draft">Draft</option>
-          <option value="archived">Archived</option>
-        </select>
         <Link className="btn btn-gold" href="/admin/blogs/new">Create Blog</Link>
       </div>
+      {orderError ? <div className="form-msg error">{orderError}</div> : null}
       <div className="admin-table-wrap">
         <table className="admin-table">
           <thead>
             <tr>
+              <th>Order</th>
               <th>Title</th>
-              <th>Status</th>
               <th>Category</th>
               <th>Updated</th>
               <th>Published</th>
@@ -82,39 +75,20 @@ export function AdminBlogsTable({ blogs }: AdminBlogsTableProps) {
           </thead>
           <tbody>
             {filtered.map((blog) => (
-              <tr key={blog.id}>
+              <tr key={blog.id} {...reorder.rowProps(blog.id)}>
+                <td>
+                  <button type="button" className="admin-drag-handle" disabled={reorder.savingOrder} {...reorder.handleProps(blog.id)}>☰</button>
+                </td>
                 <td>
                   <strong>{blog.title}</strong>
                   <span>{blog.slug}</span>
                 </td>
-                <td><span className={`status-pill ${blog.status}`}>{blog.status}</span></td>
                 <td>{blog.category}</td>
                 <td>{formatDate(blog.updatedAt)}</td>
                 <td>{formatDate(blog.publishedAt)}</td>
                 <td>
                   <div className="admin-actions">
-                    <Link href={blog.status === "published" ? `/blogs/${blog.slug}` : `/admin/blogs/preview/${blog.id}`}>
-                      Preview
-                    </Link>
                     <Link href={`/admin/blogs/edit/${blog.id}`}>Edit</Link>
-                    {blog.status === "published" ? (
-                      <button type="button" onClick={() => updateStatus(blog, "draft")} disabled={updating === blog.id}>
-                        {updating === blog.id ? "Updating" : "Unpublish"}
-                      </button>
-                    ) : blog.status === "draft" ? (
-                      <button type="button" onClick={() => updateStatus(blog, "published")} disabled={updating === blog.id}>
-                        {updating === blog.id ? "Updating" : "Publish"}
-                      </button>
-                    ) : null}
-                    {blog.status !== "archived" ? (
-                      <button type="button" onClick={() => updateStatus(blog, "archived")} disabled={updating === blog.id}>
-                        {updating === blog.id ? "Updating" : "Archive"}
-                      </button>
-                    ) : (
-                      <button type="button" onClick={() => updateStatus(blog, "draft")} disabled={updating === blog.id}>
-                        {updating === blog.id ? "Updating" : "Restore"}
-                      </button>
-                    )}
                     <button className="danger-action" type="button" onClick={() => remove(blog.id)} disabled={deleting === blog.id}>
                       {deleting === blog.id ? "Deleting" : "Delete"}
                     </button>
@@ -130,6 +104,7 @@ export function AdminBlogsTable({ blogs }: AdminBlogsTableProps) {
           </tbody>
         </table>
       </div>
+      {reorder.savingOrder ? <div className="admin-order-status">Saving order...</div> : null}
     </div>
   );
 }

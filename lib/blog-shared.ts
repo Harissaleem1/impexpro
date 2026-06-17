@@ -11,6 +11,7 @@ export type Blog = {
   tags: string[];
   author: string;
   status: BlogStatus;
+  sortOrder?: number;
   metaTitle?: string;
   metaDescription?: string;
   canonicalUrl?: string;

@@ -1,6 +1,6 @@
 # MongoDB Atlas Setup
 
-MongoDB Atlas is required for production on Vercel. Vercel serverless filesystem storage is not persistent, so blogs and contact submissions must use MongoDB.
+MongoDB Atlas is required for production on Vercel. Vercel serverless filesystem storage is not persistent, so blogs, activities, and contact submissions must use MongoDB.
 
 ## 1. Create Atlas Database
 
@@ -25,6 +25,9 @@ SMTP_PORT=465
 SMTP_USER=your-gmail@gmail.com
 SMTP_PASS=your-gmail-app-password
 CONTACT_RECEIVER_EMAIL=receiver@example.com
+CLOUDINARY_CLOUD_NAME=your-cloud-name
+CLOUDINARY_API_KEY=your-api-key
+CLOUDINARY_API_SECRET=your-api-secret
 ```
 
 Use the same values in local `.env` for development.
@@ -42,6 +45,9 @@ The script creates:
 - `blogs.slug` unique index
 - `blogs.status`
 - `blogs.publishedAt`
+- `activities.slug` unique index
+- `activities.status`
+- `activities.sortOrder`
 - `submissions.status`
 - `submissions.createdAt`
 
@@ -51,6 +57,7 @@ The app uses these collections:
 
 ```txt
 blogs
+activities
 submissions
 ```
 

@@ -6,8 +6,9 @@ import { ClientEffects } from "@/components/ClientEffects";
 import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
 import { WhatsAppFab } from "@/components/WhatsAppFab";
+import type { SiteSettings } from "@/lib/site-settings";
 
-export function SiteChrome({ children }: { children: React.ReactNode }) {
+export function SiteChrome({ children, settings }: { children: React.ReactNode; settings: SiteSettings }) {
   const pathname = usePathname();
   const isAdmin = pathname.startsWith("/admin");
 
@@ -19,8 +20,8 @@ export function SiteChrome({ children }: { children: React.ReactNode }) {
     <>
       <Header />
       {children}
-      <Footer />
-      <WhatsAppFab />
+      <Footer settings={settings} />
+      <WhatsAppFab url={settings.whatsappUrl} />
       <ClientEffects />
     </>
   );

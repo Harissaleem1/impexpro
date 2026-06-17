@@ -1,6 +1,6 @@
 # Impex Alliance Group Website
 
-Next.js App Router website for Impex-Pro with a MongoDB-backed blog CMS, password-only admin login, Gmail SMTP contact notifications, and admin portal replies.
+Next.js App Router website for Impex-Pro with MongoDB-backed blog and activities CMS, password-only admin login, Gmail SMTP contact notifications, Cloudinary media uploads, and admin portal replies.
 
 ## Quick Start
 
@@ -30,7 +30,7 @@ Open the local URL printed by Next.js, usually `http://localhost:3000`.
 
 - `.env` is not generated automatically.
 - `.env.example` lists every required local and production variable without secrets.
-- MongoDB Atlas is required for blogs, contact submissions, and admin reply threads.
+- MongoDB Atlas is required for blogs, activities, contact submissions, and admin reply threads.
 - Local JSON storage is removed from the active app workflow.
 - Public site details live in `lib/site-config.ts`.
 - Admin login is password-only.
@@ -61,6 +61,9 @@ SMTP_PORT=465
 SMTP_USER=
 SMTP_PASS=
 CONTACT_RECEIVER_EMAIL=
+CLOUDINARY_CLOUD_NAME=
+CLOUDINARY_API_KEY=
+CLOUDINARY_API_SECRET=
 ```
 
 ## Commands

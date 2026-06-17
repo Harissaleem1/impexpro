@@ -4,7 +4,6 @@ import { createBlog, getAllBlogs } from "@/lib/blogs";
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const q = searchParams.get("q")?.trim().toLowerCase();
-  const status = searchParams.get("status");
   const category = searchParams.get("category")?.trim();
 
   try {
@@ -17,15 +16,11 @@ export async function GET(request: Request) {
           .includes(q);
       return (
         matchesQuery &&
-        (status === "draft" || status === "published" || status === "archived" ? blog.status === status : true) &&
         (!category || blog.category === category)
       );
     });
     const counts = {
-      total: blogs.length,
-      published: blogs.filter((blog) => blog.status === "published").length,
-      draft: blogs.filter((blog) => blog.status === "draft").length,
-      archived: blogs.filter((blog) => blog.status === "archived").length
+      total: blogs.length
     };
     return NextResponse.json({ blogs, counts });
   } catch (error) {

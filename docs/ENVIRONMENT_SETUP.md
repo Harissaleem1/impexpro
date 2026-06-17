@@ -26,6 +26,11 @@ SMTP_PORT=465
 SMTP_USER=your-gmail@gmail.com
 SMTP_PASS=your-gmail-app-password
 CONTACT_RECEIVER_EMAIL=receiver@example.com
+
+# Cloudinary admin media uploads
+CLOUDINARY_CLOUD_NAME=your-cloud-name
+CLOUDINARY_API_KEY=your-api-key
+CLOUDINARY_API_SECRET=your-api-secret
 ```
 
 Generate a password hash:
@@ -54,5 +59,6 @@ Then restart `npm run dev`.
 - `ADMIN_PASSWORD_HASH` must be a bcrypt hash.
 - Gmail requires an App Password for `SMTP_PASS`, not your normal Gmail password.
 - Spaces in Gmail App Passwords are accepted by the app.
+- Cloudinary variables are required for admin media uploads in blogs and activities.
 - Local JSON data files are not used anymore.
 - Vercel production must have the same required environment variables configured in Project Settings.

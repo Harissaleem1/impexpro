@@ -1,11 +1,16 @@
 import type { Metadata } from "next";
 import { ContactForm } from "@/components/ContactForm";
 import { PageHero } from "@/components/PageHero";
+import { getSiteSettings } from "@/lib/site-settings";
 import { pageMetadata, site } from "@/lib/site";
 
 export const metadata: Metadata = pageMetadata.contact;
 
-export default function ContactPage() {
+export default async function ContactPage() {
+  const settings = await getSiteSettings();
+  const officeAddress = [settings.address, settings.country].filter(Boolean).join(", ");
+  const mapUrl = settings.googleMapsEmbedUrl || settings.googleMapsUrl;
+
   return (
     <>
       <PageHero
@@ -29,7 +34,7 @@ export default function ContactPage() {
                 <div>
                   <div className="contact-label">Email</div>
                   <div className="contact-val">
-                    <a href={`mailto:${site.email}`}>{site.email}</a>
+                    <a href={`mailto:${settings.primaryEmail}`}>{settings.primaryEmail}</a>
                   </div>
                 </div>
               </div>
@@ -38,7 +43,7 @@ export default function ContactPage() {
                 <div>
                   <div className="contact-label">Phone / WhatsApp</div>
                   <div className="contact-val">
-                    <a href={site.phoneHref}>{site.phone}</a>
+                    <a href={settings.phoneHref}>{settings.phone}</a>
                   </div>
                 </div>
               </div>
@@ -57,21 +62,36 @@ export default function ContactPage() {
                 <div className="contact-icon">📍</div>
                 <div>
                   <div className="contact-label">Office</div>
-                  <div className="contact-val">{site.address}, Pakistan</div>
+                  <div className="contact-val">
+                    {settings.googleMapsUrl ? (
+                      <a href={settings.googleMapsUrl} target="_blank" rel="noreferrer">{officeAddress}</a>
+                    ) : officeAddress}
+                  </div>
                 </div>
               </div>
+              {settings.businessHours ? (
+                <div className="contact-item">
+                  <div className="contact-icon">🕒</div>
+                  <div>
+                    <div className="contact-label">Business Hours</div>
+                    <div className="contact-val">{settings.businessHours}</div>
+                  </div>
+                </div>
+              ) : null}
             </div>
           </div>
           <ContactForm />
         </div>
       </section>
-      <iframe
-        className="map-embed"
-        src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3321.03!2d73.0479!3d33.7038!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2sG-9+Markaz%2C+Islamabad!5e0!3m2!1sen!2spk!4v1700000000000"
-        allowFullScreen
-        loading="lazy"
-        title="Impex-Pro Office - G-9 Markaz, Islamabad"
-      />
+      {mapUrl ? (
+        <iframe
+          className="map-embed"
+          src={mapUrl}
+          allowFullScreen
+          loading="lazy"
+          title={`${settings.businessName} Office - ${officeAddress}`}
+        />
+      ) : null}
     </>
   );
 }

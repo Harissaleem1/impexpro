@@ -1,10 +1,14 @@
 import type { Metadata } from "next";
-import { HtmlContent } from "@/components/HtmlContent";
-import { teamHtml } from "@/lib/pageContent";
+import { TeamContent } from "@/components/TeamContent";
 import { pageMetadata } from "@/lib/site";
+import { getSiteSettings } from "@/lib/site-settings";
+import { getActiveTeamMembers } from "@/lib/team";
+
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = pageMetadata.team;
 
-export default function TeamPage() {
-  return <HtmlContent html={teamHtml} />;
+export default async function TeamPage() {
+  const [members, settings] = await Promise.all([getActiveTeamMembers(), getSiteSettings()]);
+  return <TeamContent members={members} settings={settings} />;
 }

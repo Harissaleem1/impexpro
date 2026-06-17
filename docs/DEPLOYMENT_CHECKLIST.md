@@ -19,6 +19,9 @@ SMTP_PORT=465
 SMTP_USER=
 SMTP_PASS=
 CONTACT_RECEIVER_EMAIL=
+CLOUDINARY_CLOUD_NAME=
+CLOUDINARY_API_KEY=
+CLOUDINARY_API_SECRET=
 ```
 
 - Apply variables to Production and Preview if both environments are used.
@@ -28,6 +31,9 @@ CONTACT_RECEIVER_EMAIL=
 - Confirm `/admin/login` works with the production password.
 - Confirm contact form submissions save to MongoDB `submissions`.
 - Confirm blog creation writes to MongoDB `blogs`.
+- Confirm activity creation writes to MongoDB `activities`.
+- Confirm admin media uploads save Cloudinary URLs.
 - Confirm `/blogs` shows only published posts.
+- Confirm `/activities` shows only published activities.
 
 Old local JSON storage is deprecated and not used in production.

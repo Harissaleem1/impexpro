@@ -3,7 +3,10 @@ import type React from "react";
 import { Cormorant_Garamond, Outfit } from "next/font/google";
 import { SiteChrome } from "@/components/SiteChrome";
 import { site } from "@/lib/site";
+import { getSiteSettings } from "@/lib/site-settings";
 import "./globals.css";
+
+export const dynamic = "force-dynamic";
 
 const outfit = Outfit({
   subsets: ["latin"],
@@ -59,11 +62,13 @@ export const viewport: Viewport = {
   themeColor: "#1B1B52"
 };
 
-export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+  const settings = await getSiteSettings();
+
   return (
     <html lang="en" className={`${outfit.variable} ${cormorant.variable}`}>
       <body suppressHydrationWarning>
-        <SiteChrome>{children}</SiteChrome>
+        <SiteChrome settings={settings}>{children}</SiteChrome>
       </body>
     </html>
   );

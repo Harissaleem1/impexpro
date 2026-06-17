@@ -30,6 +30,9 @@ SMTP_PORT=465
 SMTP_USER=your-gmail@gmail.com
 SMTP_PASS=your-gmail-app-password
 CONTACT_RECEIVER_EMAIL=receiver@example.com
+CLOUDINARY_CLOUD_NAME=your-cloud-name
+CLOUDINARY_API_KEY=your-api-key
+CLOUDINARY_API_SECRET=your-api-secret
 ```
 
 Set these in Vercel Project Settings -> Environment Variables for Production, Preview, and Development as needed. Redeploy after changing any value.
@@ -58,8 +61,19 @@ Runtime data is stored in MongoDB Atlas collections:
 
 ```txt
 blogs
+activities
 submissions
 ```
+
+Future admin-uploaded media is stored in Cloudinary folders:
+
+```txt
+impexpro/blogs
+impexpro/activities
+impexpro/general
+```
+
+Existing files in `public/` continue to work and are not migrated automatically.
 
 The old local JSON files are removed from active production use.
 

@@ -391,32 +391,6 @@ export const homeHtml = `<!-- ═══ ABOUT ═══ -->
 </section>
 
 <!-- ═══ TESTIMONIALS ═══ -->
-<section class="section section-dark fade-in" style="background:var(--navy);border-top:1px solid rgba(255,255,255,0.05);">
-  <div class="dark-grid-bg"></div>
-  <div style="position:relative;z-index:2;">
-    <div class="testi-header">
-      <div>
-        <div class="section-tag" style="color:var(--gold)">Client Testimonials</div>
-        <h2 class="section-title light">What Our <em>Clients Say</em></h2>
-      </div>
-      <div class="testi-nav">
-        <button class="testi-btn" id="testiPrev">&#8592;</button>
-        <button class="testi-btn" id="testiNext">&#8594;</button>
-      </div>
-    </div>
-    <div class="testi-track-wrap">
-      <div class="testi-track">
-        <div class="testi-card"><div class="testi-quote">&ldquo;</div><div class="testi-stars"><span>★</span><span>★</span><span>★</span><span>★</span><span>★</span></div><p class="testi-text">"Impex-Pro transformed our export journey from scratch. Faheem sahib and his team handled our WEBOC registration, customs documentation, and first shipment with remarkable professionalism."</p><div class="testi-author"><div class="testi-avatar">AK</div><div><div class="testi-name">Ahmed Karim</div><div class="testi-role">CEO &amp; Founder</div><div class="testi-company">AK Agro Exports, Lahore</div></div></div></div>
-        <div class="testi-card"><div class="testi-quote">&ldquo;</div><div class="testi-stars"><span>★</span><span>★</span><span>★</span><span>★</span><span>★</span></div><p class="testi-text">"The training program at Impex-Pro was a game-changer for me. As a fresh graduate, I launched my own trading business within 4 months. The certification and mentorship are world-class."</p><div class="testi-author"><div class="testi-avatar">SR</div><div><div class="testi-name">Sana Rehman</div><div class="testi-role">Entrepreneur &amp; Trainee Alumni</div><div class="testi-company">SRG Trading Company, Islamabad</div></div></div></div>
-        <div class="testi-card"><div class="testi-quote">&ldquo;</div><div class="testi-stars"><span>★</span><span>★</span><span>★</span><span>★</span><span>★</span></div><p class="testi-text">"Our customs clearance was stuck for weeks before we approached Impex-Pro. Their team resolved everything within 48 hours — documentation, duties, compliance. They are true experts."</p><div class="testi-author"><div class="testi-avatar">MF</div><div><div class="testi-name">Muhammad Farooq</div><div class="testi-role">Director Operations</div><div class="testi-company">PakMineral Resources Ltd.</div></div></div></div>
-        <div class="testi-card"><div class="testi-quote">&ldquo;</div><div class="testi-stars"><span>★</span><span>★</span><span>★</span><span>★</span><span>★</span></div><p class="testi-text">"From company registration to obtaining our import license and setting up our FBR profile — Impex-Pro handled everything seamlessly. Their one-window approach saved us months of hassle."</p><div class="testi-author"><div class="testi-avatar">ZN</div><div><div class="testi-name">Zainab Nawaz</div><div class="testi-role">Managing Director</div><div class="testi-company">ZN Global Trade, Faisalabad</div></div></div></div>
-        <div class="testi-card"><div class="testi-quote">&ldquo;</div><div class="testi-stars"><span>★</span><span>★</span><span>★</span><span>★</span><span>★</span></div><p class="testi-text">"I attended Impex-Pro's workshop on export documentation and it was incredibly practical. Mr. Faheem's real-world experience shines through every session. My team learned more in 2 days than months of self-study."</p><div class="testi-author"><div class="testi-avatar">TH</div><div><div class="testi-name">Tariq Hussain</div><div class="testi-role">Business Development Manager</div><div class="testi-company">Punjab Textile Mills</div></div></div></div>
-        <div class="testi-card"><div class="testi-quote">&ldquo;</div><div class="testi-stars"><span>★</span><span>★</span><span>★</span><span>★</span><span>★</span></div><p class="testi-text">"Impex-Pro's freight forwarding service is exceptional. They arranged LCL shipments for our chemical exports at very competitive rates with zero delays. Their global coordination is outstanding."</p><div class="testi-author"><div class="testi-avatar">OB</div><div><div class="testi-name">Omar Baig</div><div class="testi-role">Export Manager</div><div class="testi-company">Chemex Industries, Karachi</div></div></div></div>
-      </div>
-    </div>
-    <div class="testi-dots"></div>
-  </div>
-</section>
 
 <!-- ═══ CTA ═══ -->
 <section class="section cta-section fade-in">
@@ -1287,24 +1261,6 @@ export const teamHtml = `<!-- ═══ NAVBAR ═══ -->
           <span class="tcard-tag">Freight</span>
           <span class="tcard-tag">Clearance</span>
         </div>
-      </div>
-    </div>
-
-    <!-- Placeholder — You can add next team member -->
-    <div class="tcard" style="border: 2px dashed rgba(11,31,58,0.12); box-shadow:none; background: rgba(11,31,58,0.02);">
-      <div class="tcard-photo" style="background: rgba(11,31,58,0.04);">
-        <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;">
-          <div style="width:60px;height:60px;border-radius:50%;border:2px dashed rgba(212,164,55,0.35);display:flex;align-items:center;justify-content:center;">
-            <span style="font-size:26px;color:rgba(212,164,55,0.5);">+</span>
-          </div>
-          <span style="font-size:12px;color:var(--text-light);letter-spacing:1px;text-transform:uppercase;">Your Team</span>
-        </div>
-      </div>
-      <div class="tcard-info" style="text-align:center;">
-        <div class="tcard-name" style="color:var(--text-light);font-size:16px;">Growing Team</div>
-        <div class="tcard-role" style="color:rgba(212,164,55,0.5);">Add New Member</div>
-        <div class="tcard-divider" style="margin:12px auto;"></div>
-        <a href="/contact" style="font-size:12px;color:var(--gold);text-decoration:none;letter-spacing:0.5px;">Join Us →</a>
       </div>
     </div>
 

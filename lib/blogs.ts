@@ -5,9 +5,9 @@ import {
   slugify,
   type Blog,
   type BlogFormInput,
-  type BlogStatus,
   type PublicBlog
 } from "@/lib/blog-shared";
+import { serializeMongoDocument, serializeMongoDocuments, withoutMongoId } from "@/lib/mongo-serialize";
 
 export { excerptFromContent, formatDate, parseTags, readingTime, slugify } from "@/lib/blog-shared";
 export type { Blog, BlogFormInput, BlogStatus, PublicBlog } from "@/lib/blog-shared";
@@ -21,6 +21,26 @@ function cleanText(value: unknown, max = 5000) {
     .slice(0, max);
 }
 
+function parseOptionalNumber(value: unknown) {
+  if (value === undefined || value === null || value === "") return undefined;
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : undefined;
+}
+
+function blogDateValue(blog: Blog) {
+  return new Date(blog.publishedAt || blog.createdAt || blog.updatedAt).getTime() || 0;
+}
+
+function sortBlogsForDisplay(blogs: Blog[]) {
+  return [...blogs].sort((a, b) => {
+    const aOrder = Number.isFinite(a.sortOrder) ? Number(a.sortOrder) : Number.MAX_SAFE_INTEGER;
+    const bOrder = Number.isFinite(b.sortOrder) ? Number(b.sortOrder) : Number.MAX_SAFE_INTEGER;
+
+    if (aOrder !== bOrder) return aOrder - bOrder;
+    return blogDateValue(b) - blogDateValue(a);
+  });
+}
+
 export function validateBlogInput(input: Partial<BlogFormInput>) {
   const errors: Record<string, string> = {};
   const title = cleanText(input.title, 180);
@@ -29,8 +49,8 @@ export function validateBlogInput(input: Partial<BlogFormInput>) {
   const content = cleanText(input.content, 100000);
   const category = cleanText(input.category, 80) || "General";
   const author = cleanText(input.author, 120) || "Impex-Pro Team";
-  const status: BlogStatus =
-    input.status === "published" || input.status === "archived" ? input.status : "draft";
+  const status = "published" as const;
+  const sortOrder = parseOptionalNumber(input.sortOrder);
   const coverImage = cleanText(input.coverImage, 1000) || undefined;
   const metaTitle = cleanText(input.metaTitle, 180) || undefined;
   const metaDescription = cleanText(input.metaDescription, 300) || undefined;
@@ -39,12 +59,10 @@ export function validateBlogInput(input: Partial<BlogFormInput>) {
 
   if (!title) errors.title = "Title is required.";
   if (!slug) errors.slug = "Slug is required.";
-  if (status === "published") {
-    if (!excerpt) errors.excerpt = "Excerpt is required before publishing.";
-    if (!content) errors.content = "Content is required before publishing.";
-    if (!metaTitle) errors.metaTitle = "Meta title is required before publishing.";
-    if (!metaDescription) errors.metaDescription = "Meta description is required before publishing.";
-  }
+  if (!excerpt) errors.excerpt = "Excerpt is required.";
+  if (!content) errors.content = "Content is required.";
+  if (!metaTitle) errors.metaTitle = "Meta title is required.";
+  if (!metaDescription) errors.metaDescription = "Meta description is required.";
   if (coverImage && !/^https?:\/\//.test(coverImage) && !coverImage.startsWith("/")) {
     errors.coverImage = "Cover image must be a public URL or a /public path.";
   }
@@ -65,6 +83,7 @@ export function validateBlogInput(input: Partial<BlogFormInput>) {
       tags,
       author,
       status,
+      sortOrder,
       metaTitle,
       metaDescription,
       canonicalUrl
@@ -74,25 +93,26 @@ export function validateBlogInput(input: Partial<BlogFormInput>) {
 
 export async function getAllBlogs() {
   const collection = await getBlogsCollection();
-  return collection.find({}).sort({ updatedAt: -1 }).toArray();
+  const blogs = serializeMongoDocuments(await collection.find({}).toArray());
+  return sortBlogsForDisplay(blogs);
 }
 
 export async function getPublishedBlogs(): Promise<PublicBlog[]> {
   const collection = await getBlogsCollection();
-  return collection
-    .find({ status: "published" })
-    .sort({ publishedAt: -1, createdAt: -1 })
-    .toArray();
+  const blogs = serializeMongoDocuments(await collection.find({ status: { $ne: "archived" } }).toArray());
+  return sortBlogsForDisplay(blogs);
 }
 
 export async function getBlogById(id: string) {
   const collection = await getBlogsCollection();
-  return collection.findOne({ id });
+  const blog = await collection.findOne({ id });
+  return blog ? serializeMongoDocument(blog) : null;
 }
 
 export async function getPublishedBlogBySlug(slug: string): Promise<PublicBlog | null> {
   const collection = await getBlogsCollection();
-  return collection.findOne({ slug, status: "published" });
+  const blog = await collection.findOne({ slug, status: { $ne: "archived" } });
+  return blog ? serializeMongoDocument(blog) : null;
 }
 
 export async function getRelatedBlogs(blog: PublicBlog, take = 3): Promise<PublicBlog[]> {
@@ -114,10 +134,14 @@ export async function createBlog(input: Partial<BlogFormInput>) {
   }
 
   const now = new Date().toISOString();
+  const first = await collection.find({}).sort({ sortOrder: 1 }).limit(1).next();
+  const sortOrder = result.data.sortOrder ?? (Number.isFinite(first?.sortOrder) ? Number(first?.sortOrder) - 1 : 0);
   const blog: Blog = {
     id: randomUUID(),
     ...result.data,
-    publishedAt: result.data.status === "published" ? now : null,
+    status: "published",
+    sortOrder,
+    publishedAt: now,
     createdAt: now,
     updatedAt: now
   };
@@ -141,10 +165,11 @@ export async function updateBlog(id: string, input: Partial<BlogFormInput>) {
 
   const now = new Date().toISOString();
   const blog: Blog = {
-    ...existing,
+    ...withoutMongoId(existing),
     ...result.data,
-    publishedAt:
-      result.data.status === "published" ? existing.publishedAt || now : null,
+    status: "published",
+    sortOrder: result.data.sortOrder ?? existing.sortOrder,
+    publishedAt: existing.publishedAt || now,
     updatedAt: now
   };
 
@@ -156,4 +181,22 @@ export async function deleteBlog(id: string) {
   const collection = await getBlogsCollection();
   const result = await collection.deleteOne({ id });
   return result.deletedCount > 0;
+}
+
+export async function reorderBlogs(ids: string[]) {
+  const cleanIds = ids.map((id) => cleanText(id, 120)).filter(Boolean);
+  if (!cleanIds.length) return { ok: false as const, error: "No blogs were provided." };
+
+  const collection = await getBlogsCollection();
+  const now = new Date().toISOString();
+  await collection.bulkWrite(
+    cleanIds.map((id, index) => ({
+      updateOne: {
+        filter: { id },
+        update: { $set: { sortOrder: index, updatedAt: now } }
+      }
+    }))
+  );
+
+  return { ok: true as const };
 }

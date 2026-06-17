@@ -44,10 +44,8 @@ export default async function BlogsPage({ searchParams }: BlogsPageProps) {
     return searchMatch && (!category || blog.category === category) && (!tag || blog.tags.includes(tag));
   });
 
-  const featured = filtered[0];
-  const rest = filtered.slice(featured ? 1 : 0);
-  const totalPages = Math.max(1, Math.ceil(rest.length / BLOG_PAGE_SIZE));
-  const paginated = rest.slice((page - 1) * BLOG_PAGE_SIZE, page * BLOG_PAGE_SIZE);
+  const totalPages = Math.max(1, Math.ceil(filtered.length / BLOG_PAGE_SIZE));
+  const paginated = filtered.slice((page - 1) * BLOG_PAGE_SIZE, page * BLOG_PAGE_SIZE);
 
   return (
     <>
@@ -69,16 +67,13 @@ export default async function BlogsPage({ searchParams }: BlogsPageProps) {
           <BlogFilters categories={categories} tags={tags} />
         </Suspense>
 
-        {!featured ? (
+        {!filtered.length ? (
           <div className="blog-empty">
-            <h2>No published blogs yet.</h2>
-            <p>New trade insights will appear here once they are published from the admin dashboard.</p>
+            <h2>No blogs yet.</h2>
+            <p>New trade insights will appear here once they are added from the admin dashboard.</p>
           </div>
         ) : (
           <>
-            <div className="featured-wrap">
-              <BlogCard blog={featured} featured />
-            </div>
             <div className="blog-grid">
               {paginated.map((blog) => (
                 <BlogCard key={blog.id} blog={blog} />

@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { getSubmissionsCollection } from "@/lib/mongodb";
+import { serializeMongoDocument, serializeMongoDocuments, withoutMongoId } from "@/lib/mongo-serialize";
 
 export type SubmissionStatus = "unread" | "read" | "replied";
 
@@ -85,12 +86,13 @@ export function normalizeSubmissionThread(submission: ContactSubmission): Submis
 
 export async function getSubmissions() {
   const collection = await getSubmissionsCollection();
-  return collection.find({}).sort({ createdAt: -1 }).toArray();
+  return serializeMongoDocuments(await collection.find({}).sort({ createdAt: -1 }).toArray());
 }
 
 export async function getSubmission(id: string) {
   const collection = await getSubmissionsCollection();
-  return collection.findOne({ id });
+  const submission = await collection.findOne({ id });
+  return submission ? serializeMongoDocument(submission) : null;
 }
 
 export async function createSubmission(input: Record<string, unknown>, userAgent?: string) {
@@ -184,7 +186,7 @@ export async function updateSubmissionStatus(id: string, status: SubmissionStatu
     { $set: { status, updatedAt } },
     { returnDocument: "after" }
   );
-  return result;
+  return result ? serializeMongoDocument(result) : null;
 }
 
 export async function addSubmissionReply(id: string, reply: { subject: string; body: string }) {
@@ -194,7 +196,7 @@ export async function addSubmissionReply(id: string, reply: { subject: string; b
   const now = new Date().toISOString();
   const thread = normalizeSubmissionThread(existing);
   const updated: ContactSubmission = {
-    ...existing,
+    ...withoutMongoId(existing),
     status: "replied",
     updatedAt: now,
     thread: [

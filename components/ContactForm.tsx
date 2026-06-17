@@ -101,13 +101,12 @@ export function ContactForm() {
             </select>
           </div>
           <div className="form-group">
-            <label htmlFor="ftrade">Trade Type *</label>
+            <label htmlFor="ftrade">Trade Requirement *</label>
             <select id="ftrade" name="trade" defaultValue="" required>
               <option value="" disabled hidden>Please choose trade type</option>
-              <option>Import / Export</option>
-              <option>Import Only</option>
-              <option>Export Only</option>
-              <option>Both</option>
+              <option>Import Services</option>
+              <option>Export Services</option>
+              <option>Import &amp; Export Services</option>
             </select>
           </div>
         </div>

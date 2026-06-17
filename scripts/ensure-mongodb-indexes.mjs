@@ -35,9 +35,18 @@ try {
   await Promise.all([
     db.collection("blogs").createIndex({ slug: 1 }, { unique: true }),
     db.collection("blogs").createIndex({ status: 1 }),
+    db.collection("blogs").createIndex({ sortOrder: 1 }),
     db.collection("blogs").createIndex({ publishedAt: -1 }),
     db.collection("submissions").createIndex({ status: 1 }),
-    db.collection("submissions").createIndex({ createdAt: -1 })
+    db.collection("submissions").createIndex({ createdAt: -1 }),
+    db.collection("activities").createIndex({ slug: 1 }, { unique: true }),
+    db.collection("activities").createIndex({ status: 1 }),
+    db.collection("activities").createIndex({ sortOrder: 1 }),
+    db.collection("teamMembers").createIndex({ id: 1 }, { unique: true }),
+    db.collection("teamMembers").createIndex({ active: 1, sortOrder: 1 }),
+    db.collection("reviews").createIndex({ id: 1 }, { unique: true }),
+    db.collection("reviews").createIndex({ active: 1, sortOrder: 1 }),
+    db.collection("cmsMigrations").createIndex({ key: 1 }, { unique: true })
   ]);
 
   console.log("MongoDB indexes are ready.");
